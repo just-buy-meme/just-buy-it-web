@@ -4,7 +4,9 @@ import {
   DownOutlined, 
   LoadingOutlined,
   FireOutlined,
-  StarOutlined
+  StarOutlined,
+  PauseCircleOutlined,
+  PlayCircleOutlined
 } from "@ant-design/icons";
 import { env } from "~/env";
 import { cn } from "~/core/utils";
@@ -26,6 +28,7 @@ export function MarketMonitoring({
   const [tickerBoxes, setTickerBoxes] = useState<Record<string, number>>({});
   const [lastLogs, setLastLogs] = useState<Record<string, string>>({});
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   // 목업 데이터 - 실제 API가 없을 때 테스트용
   const mockData = {
@@ -42,9 +45,14 @@ export function MarketMonitoring({
     }
   };
 
+  // 일시정지/재개 토글 핸들러
+  const togglePause = () => {
+    setIsPaused(prev => !prev);
+  };
+
   useEffect(() => {
-    // 컴포넌트가 열려있을 때만 모니터링을 시작합니다.
-    if (isOpen) {
+    // 컴포넌트가 열려있고 일시정지 상태가 아닐 때만 모니터링을 시작합니다.
+    if (isOpen && !isPaused) {
       const fetchMonitoringStatus = async () => {
         try {
           // 실제 API 호출 시도
@@ -124,27 +132,59 @@ export function MarketMonitoring({
           intervalRef.current = null;
         }
       };
+    } else if (isOpen && isPaused) {
+      // 일시정지 상태일 때 인터벌을 정리합니다
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
-  }, [isOpen, tickerBoxes, lastLogs]);
+  }, [isOpen, isPaused, tickerBoxes, lastLogs]);
 
   return (
     <div className={cn("border rounded-lg shadow-lg bg-white", className)}>
       <div 
-        className="flex items-center justify-between p-3 border-b cursor-pointer"
-        onClick={onToggle}
+        className="flex items-center justify-between p-3 border-b"
       >
-        <h3 className="font-medium text-lg flex items-center gap-2">
+        <h3 
+          className="font-medium text-lg flex items-center gap-2 cursor-pointer"
+          onClick={onToggle}
+        >
           <FireOutlined className="text-red-500" />
           시장 모니터링
         </h3>
         <div className="flex items-center gap-2">
-          {loading && <LoadingOutlined spin />}
-          {isOpen ? <UpOutlined /> : <DownOutlined />}
+          {/* 일시정지/재개 버튼 */}
+          <button 
+            onClick={togglePause}
+            className="text-gray-600 hover:text-blue-500 transition-colors"
+            title={isPaused ? "재개" : "일시정지"}
+          >
+            {isPaused ? (
+              <PlayCircleOutlined className="text-xl" />
+            ) : (
+              <PauseCircleOutlined className="text-xl" />
+            )}
+          </button>
+          
+          {loading && !isPaused && <LoadingOutlined spin />}
+          <span 
+            className="cursor-pointer"
+            onClick={onToggle}
+          >
+            {isOpen ? <UpOutlined /> : <DownOutlined />}
+          </span>
         </div>
       </div>
       
       {isOpen && (
         <div className="p-4 max-h-96 overflow-y-auto">
+          {isPaused && (
+            <div className="text-blue-500 p-2 mb-2 bg-blue-50 rounded flex items-center justify-center">
+              <PlayCircleOutlined className="mr-2" /> 모니터링이 일시정지 되었습니다.
+            </div>
+          )}
+          
           {error && (
             <div className="text-red-500 p-2 mb-2 bg-red-50 rounded">
               {error}
