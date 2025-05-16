@@ -56,27 +56,25 @@ export function MarketMonitoring({
       const fetchMonitoringStatus = async () => {
         try {
           // 실제 API 호출 시도
-          const apiEndpoints = [
-            `${env.NEXT_PUBLIC_API_URL}/monitoring_status`
-          ];
+          const endpoint =
+            `${env.NEXT_PUBLIC_API_URL}/monitoring_status`;
           
           let apiSuccess = false;
           
           // 여러 가능한 엔드포인트를 시도합니다
-          for (const endpoint of apiEndpoints) {
-            try {
-              const res = await fetch(endpoint);
-              if (res.status === 200) {
-                const data = await res.json();
-                processLogs(data.logs || {});
-                apiSuccess = true;
-                break;
-              }
-            } catch (err) {
-              // 개별 엔드포인트 오류는 무시하고 다음 엔드포인트 시도
-              console.warn(`엔드포인트 ${endpoint} 접속 실패`);
+    
+          try {
+            const res = await fetch(endpoint);
+            if (res.status === 200) {
+              const data = await res.json();
+              processLogs(data.logs || {});
+              apiSuccess = true;
             }
+          } catch (err) {
+            // 개별 엔드포인트 오류는 무시하고 다음 엔드포인트 시도
+            console.warn(`엔드포인트 ${endpoint} 접속 실패`);
           }
+          
           
           // 모든 API 시도 실패 시 목업 데이터 사용
           if (!apiSuccess) {

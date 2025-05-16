@@ -27,7 +27,7 @@ This project is a web application that leverages AI language models to automate 
 
 Create a `.env` file in the project root and configure the following environment variables:
 
-- `NEXT_PUBLIC_API_URL`: LangManus API URL
+- `NEXT_PUBLIC_API_URL`: localhost:8888/api/v1
 
 It's best to start with the example file:
 
@@ -58,16 +58,3 @@ Open your browser and navigate to http://localhost:3000
 - TypeScript
 - Tailwind CSS
 - Zustand (state management)
-- LangManus framework
-
-## Contributing
-
-Contributions of all kinds are welcome! Whether you're fixing a typo, improving documentation, or adding a new feature, your help is appreciated.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## Acknowledgments
-
-Special thanks to all the open source projects and contributors that make LangManus and this project possible.
