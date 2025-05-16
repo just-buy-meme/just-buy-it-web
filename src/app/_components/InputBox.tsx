@@ -1,4 +1,4 @@
-import { ArrowUpOutlined, GlobalOutlined } from "@ant-design/icons";
+import { ArrowUpOutlined, GlobalOutlined, LikeOutlined, CommentOutlined, UserOutlined } from "@ant-design/icons";
 import { type KeyboardEvent, useCallback, useEffect, useState } from "react";
 
 import { Atom } from "~/core/icons";
@@ -87,7 +87,7 @@ export function InputBox({
             "m-0 w-full resize-none border-none px-4 py-3 text-lg",
             size === "large" ? "min-h-32" : "min-h-4",
           )}
-          placeholder="What can I do for you?"
+          placeholder="What do you want to do?"
           value={message}
           onCompositionStart={() => setImeStatus("active")}
           onCompositionEnd={() => setImeStatus("inactive")}
@@ -99,6 +99,33 @@ export function InputBox({
       </div>
       <div className="flex items-center px-4 py-2">
         <div className="flex flex-grow items-center gap-2">
+          <button
+            className="flex h-8 items-center gap-2 rounded-2xl border px-4 text-sm text-button transition-shadow hover:bg-button-hover hover:text-button-hover hover:shadow"
+            onClick={() => {
+              setMessage("멘션 순에 따라서 주식 추천해줘");
+            }}
+          >
+            <CommentOutlined className="h-4 w-4" />
+            <span>멘션 순</span>
+          </button>
+          <button
+            className="flex h-8 items-center gap-2 rounded-2xl border px-4 text-sm text-button transition-shadow hover:bg-button-hover hover:text-button-hover hover:shadow"
+            onClick={() => {
+              setMessage("좋아요 순에 따라서 주식 추천해줘");
+            }}
+          >
+            <LikeOutlined className="h-4 w-4" />
+            <span>좋아요 순</span>
+          </button>
+          <button
+            className="flex h-8 items-center gap-2 rounded-2xl border px-4 text-sm text-button transition-shadow hover:bg-button-hover hover:text-button-hover hover:shadow"
+            onClick={() => {
+              setMessage("유저 언급 순이 많은 것에 따라서 주식 추천해줘");
+            }}
+          >
+            <UserOutlined className="h-4 w-4" />
+            <span>유저 언급 순</span>
+          </button>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
           <button
