@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { type ChatEvent, chatStream } from "../api";
+import { type ChatEvent, chatStream, recommendStream } from "../api";
 import { chatStream as mockChatStream } from "../api/mock";
 import {
   type WorkflowMessage,
@@ -59,6 +59,79 @@ export async function sendMessage(
     stream = mockChatStream(message);
   } else {
     stream = chatStream(message, useStore.getState().state, options);
+  }
+  setResponding(true);
+
+  let textMessage: TextMessage | null = null;
+  try {
+    for await (const event of stream) {
+      switch (event.type) {
+        case "start_of_agent":
+          textMessage = {
+            id: event.data.agent_id,
+            role: "assistant",
+            type: "text",
+            content: "",
+          };
+          addMessage(textMessage);
+          break;
+        case "message":
+          if (textMessage) {
+            textMessage.content += event.data.delta.content;
+            updateMessage({
+              id: textMessage.id,
+              content: textMessage.content,
+            });
+          }
+          break;
+        case "end_of_agent":
+          textMessage = null;
+          break;
+        case "start_of_workflow":
+          const workflowEngine = new WorkflowEngine();
+          const workflow = workflowEngine.start(event);
+          const workflowMessage: WorkflowMessage = {
+            id: event.data.workflow_id,
+            role: "assistant",
+            type: "workflow",
+            content: { workflow: workflow },
+          };
+          addMessage(workflowMessage);
+          for await (const updatedWorkflow of workflowEngine.run(stream)) {
+            updateMessage({
+              id: workflowMessage.id,
+              content: { workflow: updatedWorkflow },
+            });
+          }
+          _setState({
+            messages: workflow.finalState?.messages ?? [],
+          });
+          break;
+        default:
+          break;
+      }
+    }
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      return;
+    }
+    throw e;
+  } finally {
+    setResponding(false);
+  }
+  return message;
+}
+
+export async function sendRecommendMessage(
+  message: Message,
+  options: { abortSignal?: AbortSignal } = {},
+) {
+  addMessage(message);
+  let stream: AsyncIterable<ChatEvent>;
+  if (window.location.search.includes("mock")) {
+    stream = mockChatStream(message);
+  } else {
+    stream = recommendStream(message, useStore.getState().state, options);
   }
   setResponding(true);
 

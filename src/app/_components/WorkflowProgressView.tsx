@@ -21,14 +21,14 @@ export function WorkflowProgressView({
   workflow: Workflow;
 }) {
   const steps = useMemo(() => {
-    // reporter는 제외하고, 각 agentName 당 가장 마지막 단계만 유지
+    // recommender는 제외하고, 각 agentName 당 가장 마지막 단계만 유지
     const filteredSteps: WorkflowStep[] = [];
     const seenAgents = new Set<string>();
     
     // 역순으로 순회하여 각 에이전트의 가장 최근 단계만 추가
     for (let i = workflow.steps.length - 1; i >= 0; i--) {
       const step = workflow.steps[i];
-      if (step && step.agentName !== "reporter" && !seenAgents.has(step.agentName)) {
+      if (step && step.agentName !== "recommender" && !seenAgents.has(step.agentName)) {
         // 해당 에이전트의 가장 최근 단계 추가
         filteredSteps.unshift(step); // 원래 순서 유지를 위해 배열 앞에 추가
         seenAgents.add(step.agentName);
@@ -39,8 +39,28 @@ export function WorkflowProgressView({
   }, [workflow]);
   
   const reportStep = useMemo(() => {
-    return workflow.steps.find((step) => step.agentName === "reporter");
+    return workflow.steps.find((step) => step.agentName === "recommender");
   }, [workflow]);
+  
+  const lastAgentStep = useMemo(() => {
+    return steps.length > 0 ? steps[steps.length - 1] : null;
+  }, [steps]);
+
+  const lastAgentResponse = useMemo(() => {
+    if (!lastAgentStep) return "";
+    
+    // 마지막 에이전트의 텍스트 응답 찾기
+    const textTasks = lastAgentStep.tasks.filter(task => 
+      task.type === "thinking" && "text" in task.payload && task.payload.text);
+    
+    if (textTasks.length > 0) {
+      // Cast로 타입 보장
+      const thinkingTask = textTasks[textTasks.length - 1] as ThinkingTask;
+      return thinkingTask.payload.text || "";
+    }
+    
+    return "";
+  }, [lastAgentStep]);
   
   return (
     <div className="flex flex-col gap-4">
@@ -122,6 +142,20 @@ export function WorkflowProgressView({
           </Markdown>
         </div>
       )}
+      
+      {lastAgentResponse && lastAgentStep && (
+        <div className="mt-4 rounded-2xl border bg-white p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <Atom className="h-5 w-5" />
+            </div>
+            <div className="font-medium">{getStepName(lastAgentStep)}</div>
+          </div>
+          <div className="pl-10">
+            <Markdown>{lastAgentResponse}</Markdown>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -186,6 +220,8 @@ function getStepName(step: WorkflowStep) {
       return "Planning";
     case "supervisor":
       return "Thinking";
+    case "stock_recommender_agent":
+      return "Recommending";
     default:
       return step.agentName;
   }

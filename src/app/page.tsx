@@ -3,9 +3,10 @@
 import { nanoid } from "nanoid";
 import { useCallback, useRef, useState, useEffect } from "react";
 
-import { sendMessage, useStore } from "~/core/store";
+import { sendMessage, sendRecommendMessage, useStore } from "~/core/store";
 import { cn } from "~/core/utils";
 import { type WorkflowStep } from "~/core/workflow";
+import { type Message, type TextMessage } from "~/core/messaging";
 
 import { AppHeader } from "./_components/AppHeader";
 import { InputBox } from "./_components/InputBox";
@@ -75,25 +76,50 @@ export default function HomePage() {
     }
   }, [messages, isAutoTrading]);
 
+  const handleCancelResponse = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
   const handleSendMessage = useCallback(
     async (
       content: string,
-      config: { deepThinkingMode: boolean; searchBeforePlanning: boolean },
+      config: { 
+        deepThinkingMode: boolean; 
+        searchBeforePlanning: boolean;
+        isRecommend?: boolean 
+      },
     ) => {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
-      await sendMessage(
-        {
-          id: nanoid(),
-          role: "user",
-          type: "text",
-          content,
-        },
-        { 
-          ...config, 
-          abortSignal: abortController.signal 
-        }
-      );
+      
+      const userMessage: TextMessage = {
+        id: nanoid(),
+        role: "user",
+        type: "text",
+        content,
+      };
+      
+      // isRecommend 옵션에 따라 다른 API 호출
+      if (config.isRecommend) {
+        await sendRecommendMessage(
+          userMessage,
+          {
+            abortSignal: abortController.signal
+          }
+        );
+      } else {
+        await sendMessage(
+          userMessage,
+          { 
+            ...config, 
+            abortSignal: abortController.signal 
+          }
+        );
+      }
+      
       abortControllerRef.current = null;
     },
     [],
@@ -146,10 +172,7 @@ export default function HomePage() {
               size={messages.length === 0 ? "large" : "normal"}
               responding={responding}
               onSend={handleSendMessage}
-              onCancel={() => {
-                abortControllerRef.current?.abort();
-                abortControllerRef.current = null;
-              }}
+              onCancel={handleCancelResponse}
             />
           </div>
           <div className="absolute bottom-[-32px] h-8 w-page backdrop-blur-sm" />

@@ -1,8 +1,9 @@
 import { ArrowUpOutlined, GlobalOutlined, LikeOutlined, CommentOutlined, UserOutlined } from "@ant-design/icons";
-import { type KeyboardEvent, useCallback, useEffect, useState } from "react";
+import { type KeyboardEvent, useCallback, useEffect, useState, useRef } from "react";
 
 import { Atom } from "~/core/icons";
 import { cn } from "~/core/utils";
+import { type Message } from "~/core/messaging";
 
 export function InputBox({
   className,
@@ -16,7 +17,7 @@ export function InputBox({
   responding?: boolean;
   onSend?: (
     message: string,
-    options: { deepThinkingMode: boolean; searchBeforePlanning: boolean },
+    options: { deepThinkingMode: boolean; searchBeforePlanning: boolean; isRecommend?: boolean },
   ) => void;
   onCancel?: () => void;
 }) {
@@ -24,6 +25,8 @@ export function InputBox({
   const [deepThinkingMode, setDeepThinkMode] = useState(false);
   const [searchBeforePlanning, setSearchBeforePlanning] = useState(false);
   const [imeStatus, setImeStatus] = useState<"active" | "inactive">("inactive");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
   const saveConfig = useCallback(() => {
     localStorage.setItem(
       "langmanus.config.inputbox",
@@ -41,7 +44,8 @@ export function InputBox({
   useEffect(() => {
     saveConfig();
   }, [deepThinkingMode, searchBeforePlanning, saveConfig]);
-  const handleSendMessage = useCallback(() => {
+  
+  const handleSendMessage = useCallback((isRecommend = false) => {
     if (responding) {
       onCancel?.();
     } else {
@@ -49,7 +53,8 @@ export function InputBox({
         return;
       }
       if (onSend) {
-        onSend(message, { deepThinkingMode, searchBeforePlanning });
+        // isRecommend 플래그를 추가하여 상위 컴포넌트에서 구분하도록 함
+        onSend(message, { deepThinkingMode, searchBeforePlanning, isRecommend });
         setMessage("");
       }
     }
@@ -61,6 +66,7 @@ export function InputBox({
     deepThinkingMode,
     searchBeforePlanning,
   ]);
+  
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
       if (responding) {
@@ -79,10 +85,21 @@ export function InputBox({
     },
     [responding, imeStatus, handleSendMessage],
   );
+  
+  // 메시지 설정 후 전송 함수
+  const setMessageAndSend = useCallback((text: string, isRecommend = true) => {
+    setMessage(text);
+    // 다음 렌더링 사이클에서 메시지 전송
+    setTimeout(() => {
+      handleSendMessage(isRecommend);
+    }, 10);
+  }, [handleSendMessage]);
+  
   return (
     <div className={cn(className)}>
       <div className="w-full">
         <textarea
+          ref={textareaRef}
           className={cn(
             "m-0 w-full resize-none border-none px-4 py-3 text-lg",
             size === "large" ? "min-h-32" : "min-h-4",
@@ -102,7 +119,7 @@ export function InputBox({
           <button
             className="flex h-8 items-center gap-2 rounded-2xl border px-4 text-sm text-button transition-shadow hover:bg-button-hover hover:text-button-hover hover:shadow"
             onClick={() => {
-              setMessage("멘션 순에 따라서 주식 추천해줘");
+              setMessageAndSend("멘션 순에 따라서 주식 추천해줘");
             }}
           >
             <CommentOutlined className="h-4 w-4" />
@@ -111,7 +128,7 @@ export function InputBox({
           <button
             className="flex h-8 items-center gap-2 rounded-2xl border px-4 text-sm text-button transition-shadow hover:bg-button-hover hover:text-button-hover hover:shadow"
             onClick={() => {
-              setMessage("좋아요 순에 따라서 주식 추천해줘");
+              setMessageAndSend("좋아요 순에 따라서 주식 추천해줘");
             }}
           >
             <LikeOutlined className="h-4 w-4" />
@@ -120,11 +137,11 @@ export function InputBox({
           <button
             className="flex h-8 items-center gap-2 rounded-2xl border px-4 text-sm text-button transition-shadow hover:bg-button-hover hover:text-button-hover hover:shadow"
             onClick={() => {
-              setMessage("유저 언급 순이 많은 것에 따라서 주식 추천해줘");
+              setMessageAndSend("유저 언급 순이 많은 것에 따라서 주식 추천해줘");
             }}
           >
             <UserOutlined className="h-4 w-4" />
-            <span>유저 언급 순</span>
+            <span>언급 순</span>
           </button>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
@@ -134,7 +151,7 @@ export function InputBox({
               responding ? "bg-button-hover" : "bg-button",
             )}
             title={responding ? "Cancel" : "Send"}
-            onClick={handleSendMessage}
+            onClick={() => handleSendMessage()}
           >
             {responding ? (
               <div className="flex h-10 w-10 items-center justify-center">
