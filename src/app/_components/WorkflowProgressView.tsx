@@ -138,7 +138,7 @@ function PlanTaskView({ task }: { task: ThinkingTask }) {
   }, [task]);
   const [showReason, setShowReason] = useState(true);
   const reason = task.payload.reason;
-  const markdown = `## ${plan.title ?? ""}\n\n${plan.steps?.map((step) => `- **${step.title ?? ""}**\n\n${step.description ?? ""}`).join("\n\n") ?? ""}`;
+  const markdown = `${plan.title ?? ""}\n\n${plan.steps?.map((step) => `- ${step.title ?? ""}\n\n${step.description ?? ""}`).join("\n\n") ?? ""}`;
   return (
     <li key={task.id} className="flex flex-col">
       {reason && (
@@ -165,7 +165,7 @@ function PlanTaskView({ task }: { task: ThinkingTask }) {
         </div>
       )}
       <div>
-        <Markdown className="pl-6">{markdown ?? ""}</Markdown>
+        <Markdown className="pl-6 opacity-70" style={{ fontSize: "smaller" }}>{markdown ?? ""}</Markdown>
       </div>
     </li>
   );

@@ -23,7 +23,7 @@ export function ToolCallView({ task }: { task: ToolCallTask }) {
   } else if (task.payload.toolName === "bash_tool") {
     return <BashToolCallView task={task as ToolCallTask<any>} />;
   }
-  return <div>{task.payload.toolName}</div>;
+  return <div>Invoke Tool: {task.payload.toolName}</div>;
 }
 
 function BrowserToolCallView({
