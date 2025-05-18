@@ -10,7 +10,7 @@ export function chatStream(
   state: { messages: { role: string; content: string }[] },
   options: { abortSignal?: AbortSignal } = {},
 ) {
-  return fetchStream<ChatEvent>(env.NEXT_PUBLIC_API_URL + "/jaehwan/stream", {
+  return fetchStream<ChatEvent>(env.NEXT_PUBLIC_API_URL + "/chat/stream", {
     body: JSON.stringify({
       messages: [...state.messages, userMessage],
       debug:
@@ -26,7 +26,7 @@ export function recommendStream(
   state: { messages: { role: string; content: string }[] },
   options: { abortSignal?: AbortSignal } = {},
 ) {
-  return fetchStream<ChatEvent>(env.NEXT_PUBLIC_API_URL + "/jaehwan/recommend", {
+  return fetchStream<ChatEvent>(env.NEXT_PUBLIC_API_URL + "/recommentations/stream", {
     body: JSON.stringify({
       messages: [...state.messages, userMessage],
       debug:
