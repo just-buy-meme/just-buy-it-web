@@ -71,16 +71,16 @@ export class WorkflowEngine {
           yield this.workflow;
           break;
         case "message":
-          if (event.data.delta.content) {
-            if (currentThinkingTask!.payload.text === undefined) {
-              currentThinkingTask!.payload.text = "";
+          if (event.data.delta.content && currentThinkingTask) {
+            if (currentThinkingTask.payload.text === undefined) {
+              currentThinkingTask.payload.text = "";
             }
-            currentThinkingTask!.payload.text += event.data.delta.content;
-          } else if (event.data.delta.reasoning_content) {
-            if (currentThinkingTask!.payload.reason === undefined) {
-              currentThinkingTask!.payload.reason = "";
+            currentThinkingTask.payload.text += event.data.delta.content;
+          } else if (event.data.delta.reasoning_content && currentThinkingTask) {
+            if (currentThinkingTask.payload.reason === undefined) {
+              currentThinkingTask.payload.reason = "";
             }
-            currentThinkingTask!.payload.reason +=
+            currentThinkingTask.payload.reason +=
               event.data.delta.reasoning_content;
           }
           yield this.workflow;
