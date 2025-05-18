@@ -1,4 +1,5 @@
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { type Message } from "~/core/messaging";
 import { cn } from "~/core/utils";
@@ -37,12 +38,25 @@ function MessageView({ message }: { message: Message }) {
           )}
         >
           <Markdown
+            remarkPlugins={[remarkGfm]}
             components={{
               a: ({ href, children }) => (
                 <a href={href} target="_blank" rel="noopener noreferrer">
                   {children}
                 </a>
               ),
+              table: ({ children }) => (
+                <div className="overflow-auto">
+                  <table className="border-collapse border border-gray-300">
+                    {children}
+                  </table>
+                </div>
+              ),
+              thead: ({ children }) => <thead className="bg-gray-100">{children}</thead>,
+              tbody: ({ children }) => <tbody>{children}</tbody>,
+              tr: ({ children }) => <tr className="border-b border-gray-300">{children}</tr>,
+              th: ({ children }) => <th className="border border-gray-300 px-4 py-2 text-left font-semibold">{children}</th>,
+              td: ({ children }) => <td className="border border-gray-300 px-4 py-2">{children}</td>,
             }}
           >
             {message.content}
