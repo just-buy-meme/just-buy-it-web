@@ -144,7 +144,7 @@ export function WorkflowProgressView({
       )}
       
       {lastAgentResponse && lastAgentStep && (
-        <div className="mt-4 rounded-2xl border bg-white p-4">
+        <div className="mt-4 mb-8 rounded-2xl border bg-white p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="h-8 w-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
               <Atom className="h-5 w-5" />
