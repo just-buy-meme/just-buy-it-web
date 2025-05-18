@@ -26,7 +26,7 @@ export function recommendStream(
   state: { messages: { role: string; content: string }[] },
   options: { abortSignal?: AbortSignal } = {},
 ) {
-  return fetchStream<ChatEvent>(env.NEXT_PUBLIC_API_URL + "/recommentations/stream", {
+  return fetchStream<ChatEvent>(env.NEXT_PUBLIC_API_URL + "/recommendations/stream", {
     body: JSON.stringify({
       messages: [...state.messages, userMessage],
       debug:
